@@ -405,17 +405,19 @@ input:checked + .slider:before {
 }
 
 /* Landscape Mode Adjustments */
-@media (max-width: 900px) and (orientation: landscape) {
+@media (max-width: 1024px) and (orientation: landscape) {
     .main-area {
         flex-direction: row;
     }
     .canvas-wrapper {
-        width: 220px;
-        height: 220px;
-        max-height: none;
-        flex-shrink: 0;
+        width: 220px !important;
+        height: 220px !important;
+        max-height: none !important;
+        max-width: none !important;
+        flex-shrink: 0 !important;
     }
     .mobile-only {
+        display: block !important;
         align-self: center;
         margin-top: 0;
         margin-right: 0;
