@@ -410,7 +410,15 @@ input:checked + .slider:before {
         flex-direction: row;
     }
     .canvas-wrapper {
-        max-height: calc(100vh - 100px);
+        width: 220px;
+        height: 220px;
+        max-height: none;
+        flex-shrink: 0;
+    }
+    .mobile-only {
+        align-self: center;
+        margin-top: 0;
+        margin-right: 0;
     }
 }
 /* Glass Select Styles */

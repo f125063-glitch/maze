@@ -44,14 +44,7 @@
             <div class="side-panel left-panel">
                 <div style="display: flex; flex-direction: column; gap: 25px; align-items: center;">
                     <button id="btn-change-color" class="btn magic">變更色彩</button>
-                    
-                    <div id="bgm-toggle-container" class="toggle-container" style="display: none; flex-direction: column; align-items: center; gap: 8px;">
-                        <label for="bgm-toggle" style="font-weight: bold; color: var(--text-primary); font-size: 1.1rem; text-shadow: 0 0 5px rgba(0,0,0,0.5);">背景音樂</label>
-                        <label class="switch">
-                            <input type="checkbox" id="bgm-toggle" checked>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
+
                 </div>
             </div>
             
@@ -99,10 +92,7 @@
                 </div>
             </div>
 
-            <div class="side-panel right-panel" id="szj-display" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; font-size: 2.2rem; font-weight: bold; color: var(--accent-color); text-shadow: 0 0 10px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.5s ease;">
-                <div id="szj-line1" style="letter-spacing: 5px;"></div>
-                <div id="szj-line2" style="letter-spacing: 5px;"></div>
-            </div>
+            <div class="side-panel right-panel"></div>
         </div>
         
         <div style="display: grid; grid-template-columns: max-content 80px 30px max-content 220px; align-items: baseline; justify-content: center; margin-top: 15px; font-size: 1.8rem; font-weight: bold; color: var(--text-primary); text-shadow: 0 0 5px rgba(255,255,255,0.3); background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 10px 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); white-space: nowrap;">
@@ -114,7 +104,7 @@
         </div>
     </div>
 
-    <audio id="bgm-audio" src="BGM_music_1.mp3" loop preload="auto"></audio>
+
     <script src="script.js"></script>
 </body>
 </html>

@@ -29,24 +29,11 @@ const btnStartOver = document.getElementById('btn-start-over');
 const btnPause = document.getElementById('btn-pause');
 const btnHint = document.getElementById('btn-hint');
 const btnChangeColor = document.getElementById('btn-change-color');
-const bgmToggle = document.getElementById('bgm-toggle');
 const clearOverlay = document.getElementById('clear-overlay');
 const pauseOverlay = document.getElementById('pause-overlay');
 const clearStepsDisplay = document.getElementById('clear-steps-display');
 
 const PAGE_LOAD_TIME = Date.now();
-
-function checkBgmToggleVisibility() {
-    const bgmContainer = document.getElementById('bgm-toggle-container');
-    if (!bgmContainer) return;
-
-    // Show BGM toggle only after reaching Level 37
-    if (level >= 37) {
-        bgmContainer.style.display = 'flex';
-    } else {
-        bgmContainer.style.display = 'none';
-    }
-}
 
 // Game State
 let level = 1;
@@ -146,8 +133,7 @@ function startTickingSound() {
     initAudio();
     if (tickingInterval) return;
     
-    const audioEl = document.getElementById('bgm-audio');
-    if (audioEl) audioEl.volume = 0.3; // 降低 BGM 音量以利對比
+
 
     let tickCount = 0;
     tickingInterval = setInterval(() => {
@@ -176,8 +162,7 @@ function stopTickingSound() {
         clearInterval(tickingInterval);
         tickingInterval = null;
     }
-    const audioEl = document.getElementById('bgm-audio');
-    if (audioEl) audioEl.volume = 1.0; // 恢復 BGM 音量
+
 }
 
 // Removed stopStarmanMusic correctly handled by stopTickingSound rename
@@ -325,18 +310,7 @@ function initList() {
     clearOverlay.addEventListener('click', nextLevel);
     window.addEventListener('keydown', handleKeyDown);
     
-    // BGM toggle setup
-    bgmToggle.addEventListener('change', (e) => {
-        if (e.target.checked) {
-            isBgmActive = true;
-            if (bgmStarted === false) {
-                // start on active only when clicked
-                startBGM(); 
-            }
-        } else {
-            stopBGM();
-        }
-    });
+
 
     // Level selection dropdown
     const levelSelect = document.getElementById('level-select');
@@ -496,7 +470,7 @@ function loadLevel(l, isNewMapButton = false) {
     let targetSteps = calcTargetSteps(level);
     uiTargetCount.innerText = targetSteps;
     
-    checkBgmToggleVisibility();
+
 
     generateTargetMaze(targetSteps);
     
@@ -682,8 +656,6 @@ function updateTimerDisplay() {
         btnHint.classList.remove('hidden-ui');
     }
     
-    checkBgmToggleVisibility();
-    updateLyrics();
 }
 
 function handleKeyDown(e) {
@@ -740,10 +712,7 @@ function moveInDirection(direction) {
             }
         }, 16);
 
-        if (!bgmStarted && bgmToggle.checked) {
-            isBgmActive = true;
-            startBGM();
-        }
+
         
         lastWallBumpDir = '';
         wallBumpCount = 0;
@@ -1151,92 +1120,7 @@ function animateHint() {
     requestAnimationFrame(animateHint);
 }
 
-// =======================
-// Background Music System (MP3 Audio & Lyrics)
-// =======================
-let isBgmActive = true; // Auto-play default enabled
-let bgmStarted = false;
-let szjChunks = [];
-
-async function loadSzjText() {
-    try {
-        const response = await fetch('BGM_music_1.txt');
-        const text = await response.text();
-        
-        let words = text.split(/\s+/);
-        let chunks = words.filter(w => {
-            if (w.length === 0) return false;
-            // Ignore TurboScribe headers
-            if (w.match(/TurboScribe/i) || w.match(/Kiki/i) || w.match(/Republic/i) || w.match(/升級到無限/) || w.match(/移除此訊息/)) return false;
-            if (w.includes('(') || w.includes(')') || w.includes('。')) return false;
-            return true;
-        });
-        
-        let finalChunks = [];
-        for(let chunk of chunks) {
-            for(let i=0; i<chunk.length; i+=3) {
-                finalChunks.push(chunk.substring(i, i+3));
-            }
-        }
-        szjChunks = finalChunks;
-    } catch (e) {
-        console.error("無法讀取 BGM_music_1.txt，請確認已使用伺服器開啟", e);
-    }
-}
-
-function updateLyrics() {
-    if (!isBgmActive || !bgmStarted || szjChunks.length === 0) return;
-    const audioEl = document.getElementById('bgm-audio');
-    if (!audioEl) return;
-    
-    // User requested not to show synced Chinese characters during BGM
-    /*
-    // Assume 2.8 seconds per line pair 
-    let timePerPair = 2.8; 
-    let pairIndex = Math.floor(audioEl.currentTime / timePerPair);
-    if (pairIndex * 2 >= szjChunks.length) return;
-    
-    let chunk1 = szjChunks[pairIndex * 2] || "";
-    let chunk2 = szjChunks[pairIndex * 2 + 1] || "";
-    
-    let el = document.getElementById('szj-display');
-    if (el) {
-        el.style.display = 'flex';
-        el.style.opacity = 1;
-        document.getElementById('szj-line1').innerText = chunk1;
-        document.getElementById('szj-line2').innerText = chunk2;
-    }
-    */
-}
-
-function startBGM() {
-    if (!isBgmActive || bgmStarted) return;
-    bgmStarted = true;
-    
-    const audioEl = document.getElementById('bgm-audio');
-    if (audioEl) {
-        audioEl.play().catch(e => console.warn('Audio play failed:', e));
-    }
-    
-    if (szjChunks.length === 0) {
-        loadSzjText();
-    }
-}
-
-function stopBGM() {
-    isBgmActive = false;
-    bgmStarted = false;
-    
-    const audioEl = document.getElementById('bgm-audio');
-    if (audioEl) {
-        audioEl.pause();
-    }
-    
-    let el = document.getElementById('szj-display');
-    if (el) {
-        el.style.opacity = 0;
-    }
-}
+// Background Music System removed
 
 function bfsPath(start, target) {
     let queue = [start];
