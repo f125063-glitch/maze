@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0d1117">
+    <title>神祕迷宮 - Maze Adventure</title>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- Top UI Controls -->
+        <div class="top-bar glass-panel">
+            <div class="level-info" style="display: flex; align-items: center; gap: 10px;">
+                第 
+                <select id="level-select" class="glass-select">
+                    <option value="1">1</option>
+                    <option value="25">25</option>
+                    <option value="36">36</option>
+                    <option value="66">66</option>
+                    <option value="99">99</option>
+                    <option id="level-current-option" value="" style="display: none;"></option>
+                </select>
+                <span id="level-display" style="display:none">1</span>
+                關
+                <button id="btn-hint" class="btn warning hidden-ui" style="padding: 4px 8px; font-size: 0.9rem;">提示路線</button>
+            </div>
+            <div class="controls">
+                <button id="btn-new-map" class="btn primary">更換地圖</button>
+                <button id="btn-restart" class="btn secondary">地圖重新開始</button>
+                <button id="btn-start-over" class="btn danger">從頭開始</button>
+                <button id="btn-pause" class="btn warning">暫停</button>
+            </div>
+            <div class="target-time">預設步數: <span id="target-display">10</span> 步</div>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="main-area">
+            <div class="side-panel left-panel">
+                <div style="display: flex; flex-direction: column; gap: 25px; align-items: center;">
+                    <button id="btn-change-color" class="btn magic">變更色彩</button>
+                    
+                    <div id="bgm-toggle-container" class="toggle-container" style="display: none; flex-direction: column; align-items: center; gap: 8px;">
+                        <label for="bgm-toggle" style="font-weight: bold; color: var(--text-primary); font-size: 1.1rem; text-shadow: 0 0 5px rgba(0,0,0,0.5);">背景音樂</label>
+                        <label class="switch">
+                            <input type="checkbox" id="bgm-toggle" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="canvas-wrapper" style="position: relative;">
+                <canvas id="gameCanvas"></canvas>
+                <canvas id="fireworksCanvas" style="position: absolute; top: 0; left: 0; pointer-events: none; z-index: 5; background: transparent !important; box-shadow: none; border: none;"></canvas>
+            
+            <!-- Pause Overlay -->
+            <div id="pause-overlay" class="overlay hidden">
+                <h2>遊戲已暫停</h2>
+                <p>點擊「繼續」按鈕恢復遊戲</p>
+            </div>
+
+            <!-- Level Clear Overlay -->
+            <div id="clear-overlay" class="overlay hidden glass-panel accent">
+                <h2 class="glow-text">🎉 恭喜通關 🎉</h2>
+                <p>花費時間: <span id="clear-time-display">00-00-000</span></p>
+                <p>路徑長度: <span id="clear-steps-display">0</span> 步</p>
+                <p class="blink">點擊畫面任一位置開始下一關</p>
+            </div>
+            </div>
+
+            <!-- Mobile D-Pad Controls -->
+            <div id="mobile-controls" class="mobile-only">
+                <div class="d-pad">
+                    <div class="d-pad-row">
+                        <button id="ctrl-up" class="ctrl-btn up">
+                            <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg>
+                        </button>
+                    </div>
+                    <div class="d-pad-row">
+                        <button id="ctrl-left" class="ctrl-btn left">
+                            <svg viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5z"/></svg>
+                        </button>
+                        <div class="d-pad-center"></div>
+                        <button id="ctrl-right" class="ctrl-btn right">
+                            <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5z"/></svg>
+                        </button>
+                    </div>
+                    <div class="d-pad-row">
+                        <button id="ctrl-down" class="ctrl-btn down">
+                            <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="side-panel right-panel" id="szj-display" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; font-size: 2.2rem; font-weight: bold; color: var(--accent-color); text-shadow: 0 0 10px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.5s ease;">
+                <div id="szj-line1" style="letter-spacing: 5px;"></div>
+                <div id="szj-line2" style="letter-spacing: 5px;"></div>
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: max-content 80px 30px max-content 220px; align-items: baseline; justify-content: center; margin-top: 15px; font-size: 1.8rem; font-weight: bold; color: var(--text-primary); text-shadow: 0 0 5px rgba(255,255,255,0.3); background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 10px 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); white-space: nowrap;">
+            <span class="label" style="color: var(--text-secondary); font-size: 1.2rem; text-align: right; padding-right: 10px;">已使用步數:</span>
+            <span id="steps-display" style="font-family: var(--font-clock); letter-spacing: 2px; color: var(--accent-color); font-variant-numeric: tabular-nums; text-align: left;">000</span>
+            <span></span>
+            <span class="label" style="color: var(--text-secondary); font-size: 1.2rem; text-align: right; padding-right: 10px;">已花費時間:</span>
+            <span id="time-display" style="font-family: var(--font-clock); letter-spacing: 2px; font-variant-numeric: tabular-nums; text-align: left;">00-00-000</span>
+        </div>
+    </div>
+
+    <audio id="bgm-audio" src="BGM_music_1.mp3" loop preload="auto"></audio>
+    <script src="script.js"></script>
+</body>
+</html>

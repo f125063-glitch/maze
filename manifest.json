@@ -1,0 +1,16 @@
+{
+  "name": "神祕迷宮 - Maze Adventure",
+  "short_name": "神祕迷宮",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ]
+}
