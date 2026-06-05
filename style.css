@@ -356,6 +356,8 @@ input:checked + .slider:before {
         display: block;
         margin-top: 20px;
         user-select: none;
+        align-self: flex-end;
+        margin-right: 20px;
     }
 
     .d-pad {
