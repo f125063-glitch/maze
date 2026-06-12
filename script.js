@@ -57,6 +57,9 @@ let isPaused = false;
 let isCleared = false;
 let hasStartedMoving = false;
 
+// Game Mode State
+let useGesture = false;
+
 // Trail State
 let trailAnimInterval = null;
 let trailStartTime = 0;
@@ -1162,6 +1165,10 @@ function bfsPath(start, target) {
 
 // Mobile Controls Initialization
 let moveInterval = null;
+let touchStartX = 0;
+let touchStartY = 0;
+let isSwipeActive = false;
+
 function initMobileControls() {
     const controls = {
         'ctrl-up': 'top',
@@ -1175,6 +1182,7 @@ function initMobileControls() {
         if (!btn) return;
 
         const startMoving = (e) => {
+            if (useGesture) return; // Disable D-pad when gestures are active
             e.preventDefault();
             moveInDirection(dir);
             if (moveInterval) clearInterval(moveInterval);
@@ -1182,6 +1190,7 @@ function initMobileControls() {
         };
 
         const stopMoving = (e) => {
+            if (useGesture) return;
             e.preventDefault();
             if (moveInterval) {
                 clearInterval(moveInterval);
@@ -1199,17 +1208,72 @@ function initMobileControls() {
         btn.addEventListener('mouseleave', stopMoving);
     });
 
-    // Swipe Detection
-    let touchStartX = 0;
-    let touchStartY = 0;
+    // Toggle button event listener
+    const btnUseGesture = document.getElementById('btn-use-gesture');
+    if (btnUseGesture) {
+        btnUseGesture.addEventListener('click', () => {
+            useGesture = !useGesture;
+            const mobileControls = document.getElementById('mobile-controls');
+            if (useGesture) {
+                btnUseGesture.classList.add('active');
+                if (mobileControls) {
+                    mobileControls.style.setProperty('display', 'none', 'important');
+                }
+            } else {
+                btnUseGesture.classList.remove('active');
+                if (mobileControls) {
+                    mobileControls.style.removeProperty('display');
+                }
+            }
+        });
+    }
+
+    // Touch handlers for swipe (only allowed around the ball when useGesture is true)
     canvas.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-        touchStartY = e.changedTouches[0].screenY;
-    }, { passive: true });
+        if (!useGesture) return;
+
+        const touch = e.touches[0] || e.changedTouches[0];
+        const clientX = touch.clientX;
+        const clientY = touch.clientY;
+
+        const rect = canvas.getBoundingClientRect();
+        const offsetX = (canvas.width - cols * cellSize) / 2;
+        const offsetY = (canvas.height - rows * cellSize) / 2;
+        const playerCenterX = offsetX + player.x * cellSize + cellSize / 2;
+        const playerCenterY = offsetY + player.y * cellSize + cellSize / 2;
+        
+        // Map player coordinates back to screen client coordinates
+        const playerClientX = rect.left + playerCenterX * (rect.width / canvas.width);
+        const playerClientY = rect.top + playerCenterY * (rect.height / canvas.height);
+
+        // Check distance in client pixels
+        const dx = clientX - playerClientX;
+        const dy = clientY - playerClientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // Touch is near the player (radius of 80 CSS pixels)
+        if (dist <= 80) {
+            isSwipeActive = true;
+            touchStartX = clientX;
+            touchStartY = clientY;
+            e.preventDefault();
+        } else {
+            isSwipeActive = false;
+        }
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+        if (useGesture && isSwipeActive) {
+            e.preventDefault();
+        }
+    }, { passive: false });
 
     canvas.addEventListener('touchend', (e) => {
-        const touchEndX = e.changedTouches[0].screenX;
-        const touchEndY = e.changedTouches[0].screenY;
+        if (!useGesture || !isSwipeActive) return;
+
+        const touch = e.touches[0] || e.changedTouches[0];
+        const touchEndX = touch.clientX;
+        const touchEndY = touch.clientY;
         const dx = touchEndX - touchStartX;
         const dy = touchEndY - touchStartY;
         
@@ -1219,8 +1283,10 @@ function initMobileControls() {
             } else {
                 moveInDirection(dy > 0 ? 'bottom' : 'top');
             }
+            e.preventDefault();
         }
-    }, { passive: true });
+        isSwipeActive = false;
+    }, { passive: false });
 }
 
 // Service Worker Registration

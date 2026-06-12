@@ -128,7 +128,29 @@ body {
     background: linear-gradient(45deg, #a18cd1 0%, #fbc2eb 100%);
     border-color: #a18cd1;
     color: #fff;
-    transform: scale(1.05);
+}
+
+.left-panel-content {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    align-items: center;
+}
+
+.btn.gesture-btn {
+    display: none; /* Hidden on desktop */
+    background: #30363d;
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #8b949e;
+    font-size: 1.2rem;
+    padding: 15px 20px;
+}
+
+.btn.gesture-btn.active {
+    background: #2e7d32;
+    border-color: #4caf50;
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
 }
 
 .main-area {
@@ -348,6 +370,16 @@ input:checked + .slider:before {
         height: auto;
     }
 
+    .left-panel-content {
+        flex-direction: row;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .btn.gesture-btn {
+        display: inline-block;
+    }
+
     .canvas-wrapper {
         margin: 0 auto;
     }
@@ -421,6 +453,14 @@ input:checked + .slider:before {
         align-self: center;
         margin-top: 0;
         margin-right: 0;
+    }
+    .left-panel-content {
+        flex-direction: row;
+        gap: 15px;
+        justify-content: center;
+    }
+    .btn.gesture-btn {
+        display: inline-block;
     }
 }
 /* Glass Select Styles */
