@@ -370,6 +370,10 @@ input:checked + .slider:before {
         height: auto;
     }
 
+    .left-panel, .right-panel {
+        width: auto;
+    }
+
     .left-panel-content {
         flex-direction: row;
         gap: 15px;
@@ -453,6 +457,9 @@ input:checked + .slider:before {
         align-self: center;
         margin-top: 0;
         margin-right: 0;
+    }
+    .left-panel, .right-panel {
+        width: auto;
     }
     .left-panel-content {
         flex-direction: row;
