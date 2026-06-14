@@ -1232,8 +1232,6 @@ function initMobileControls() {
     let isMazeTouch = false;
 
     canvas.addEventListener('touchstart', (e) => {
-        if (!useGesture) return;
-
         const touch = e.touches[0] || e.changedTouches[0];
         const clientX = touch.clientX;
         const clientY = touch.clientY;
@@ -1262,21 +1260,21 @@ function initMobileControls() {
     }, { passive: false });
 
     canvas.addEventListener('touchmove', (e) => {
-        if (useGesture && isMazeTouch) {
+        if (isMazeTouch) {
             e.preventDefault(); // Prevent scroll while interacting in maze
         }
     }, { passive: false });
 
     canvas.addEventListener('touchend', (e) => {
-        if (!useGesture || !isMazeTouch) return;
+        if (!isMazeTouch) return;
 
-        const touch = e.touches[0] || e.changedTouches[0];
+        const touch = e.changedTouches[0];
         const touchEndX = touch.clientX;
         const touchEndY = touch.clientY;
         const dx = touchEndX - touchStartX;
         const dy = touchEndY - touchStartY;
         
-        if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
+        if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
             // Swipe
             if (Math.abs(dx) > Math.abs(dy)) {
                 moveInDirection(dx > 0 ? 'right' : 'left');
@@ -1286,16 +1284,18 @@ function initMobileControls() {
         } else {
             // Tap
             const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = (touchEndX - rect.left) * scaleX;
+            const canvasY = (touchEndY - rect.top) * scaleY;
+
             const offsetX = (canvas.width - cols * cellSize) / 2;
             const offsetY = (canvas.height - rows * cellSize) / 2;
             const playerCenterX = offsetX + player.x * cellSize + cellSize / 2;
             const playerCenterY = offsetY + player.y * cellSize + cellSize / 2;
-            
-            const playerClientX = rect.left + playerCenterX * (rect.width / canvas.width);
-            const playerClientY = rect.top + playerCenterY * (rect.height / canvas.height);
 
-            const tapDx = touchEndX - playerClientX;
-            const tapDy = touchEndY - playerClientY;
+            const tapDx = canvasX - playerCenterX;
+            const tapDy = canvasY - playerCenterY;
             
             if (Math.abs(tapDx) > Math.abs(tapDy)) {
                 moveInDirection(tapDx > 0 ? 'right' : 'left');
