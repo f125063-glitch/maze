@@ -40,9 +40,6 @@ body {
     padding: 10px;
 }
 
-#mobile-frame-wrapper {
-    display: contents; /* Desktop default: no effect */
-}
 
 .game-container {
     display: flex;
@@ -344,29 +341,9 @@ input:checked + .slider:before {
 
 @media (max-width: 768px) {
     body {
-        height: 100vh;
+        height: auto;
         min-height: 100vh;
-        overflow: hidden;
-        padding: 10px;
-    }
-
-    #mobile-frame-wrapper {
-        display: block;
-        width: 100%;
-        max-width: 500px;
-        max-height: calc(100vh - 20px);
-        margin: 0 auto;
-        background: rgba(13, 17, 23, 0.85);
-        border: 2px solid var(--primary-color);
-        border-radius: 25px;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(88, 166, 255, 0.2);
-        padding: 15px;
-        box-sizing: border-box;
         overflow-y: auto;
-        scrollbar-width: none;
-    }
-    #mobile-frame-wrapper::-webkit-scrollbar {
-        display: none;
     }
 
     .game-container {
@@ -466,30 +443,6 @@ input:checked + .slider:before {
 
 /* Landscape Mode Adjustments */
 @media (max-width: 1024px) and (orientation: landscape) {
-    body {
-        height: 100vh;
-        overflow: hidden;
-        padding: 5px;
-    }
-
-    #mobile-frame-wrapper {
-        display: block;
-        width: 100%;
-        max-width: 900px;
-        max-height: calc(100vh - 10px);
-        margin: 0 auto;
-        background: rgba(13, 17, 23, 0.85);
-        border: 2px solid var(--primary-color);
-        border-radius: 20px;
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(88, 166, 255, 0.2);
-        padding: 10px;
-        box-sizing: border-box;
-        overflow-y: auto;
-        scrollbar-width: none;
-    }
-    #mobile-frame-wrapper::-webkit-scrollbar {
-        display: none;
-    }
 
     .main-area {
         flex-direction: row;
