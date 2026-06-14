@@ -1274,14 +1274,8 @@ function initMobileControls() {
         const dx = touchEndX - touchStartX;
         const dy = touchEndY - touchStartY;
         
-        if (Math.abs(dx) > 15 || Math.abs(dy) > 15) {
-            // Swipe
-            if (Math.abs(dx) > Math.abs(dy)) {
-                moveInDirection(dx > 0 ? 'right' : 'left');
-            } else {
-                moveInDirection(dy > 0 ? 'bottom' : 'top');
-            }
-        } else {
+        // 僅允許點擊 (移動距離需小於等於15)，取消滑動移動
+        if (Math.abs(dx) <= 15 && Math.abs(dy) <= 15) {
             // Tap
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
