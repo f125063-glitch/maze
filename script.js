@@ -1274,7 +1274,7 @@ function initMobileControls() {
         const dx = touchEndX - touchStartX;
         const dy = touchEndY - touchStartY;
         
-        // 僅允許點擊 (移動距離需小於等於15)，取消滑動移動
+        // 點擊與滑動移動邏輯
         if (Math.abs(dx) <= 15 && Math.abs(dy) <= 15) {
             // Tap
             const rect = canvas.getBoundingClientRect();
@@ -1296,6 +1296,54 @@ function initMobileControls() {
             } else {
                 moveInDirection(tapDy > 0 ? 'bottom' : 'top');
             }
+        } else {
+            // Swipe
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasDx = dx * scaleX;
+            const canvasDy = dy * scaleY;
+
+            let direction = '';
+            let swipeLength = 0;
+            
+            if (Math.abs(canvasDx) > Math.abs(canvasDy)) {
+                direction = canvasDx > 0 ? 'right' : 'left';
+                swipeLength = Math.abs(canvasDx);
+            } else {
+                direction = canvasDy > 0 ? 'bottom' : 'top';
+                swipeLength = Math.abs(canvasDy);
+            }
+            
+            let steps = Math.floor(swipeLength / (cellSize * 0.6));
+            if (steps < 1) steps = 1;
+            
+            if (window.swipeSlideInterval) {
+                clearInterval(window.swipeSlideInterval);
+            }
+            
+            let currentStep = 0;
+            window.swipeSlideInterval = setInterval(() => {
+                if (currentStep >= steps) {
+                    clearInterval(window.swipeSlideInterval);
+                    return;
+                }
+                
+                const cell = grid[player.x][player.y];
+                let canMove = false;
+                if (direction === 'top' && !cell.walls.top) canMove = true;
+                if (direction === 'right' && !cell.walls.right) canMove = true;
+                if (direction === 'bottom' && !cell.walls.bottom) canMove = true;
+                if (direction === 'left' && !cell.walls.left) canMove = true;
+                
+                if (canMove) {
+                    moveInDirection(direction);
+                    currentStep++;
+                } else {
+                    clearInterval(window.swipeSlideInterval);
+                    moveInDirection(direction); // trigger wall bump sound
+                }
+            }, 60);
         }
         
         e.preventDefault();
