@@ -1339,6 +1339,19 @@ function initMobileControls() {
                 if (canMove) {
                     moveInDirection(direction);
                     currentStep++;
+                    
+                    // 檢查移動後是否到達分叉路口
+                    const newCell = grid[player.x][player.y];
+                    let isIntersection = false;
+                    if (direction === 'right' || direction === 'left') {
+                        if (!newCell.walls.top || !newCell.walls.bottom) isIntersection = true;
+                    } else if (direction === 'top' || direction === 'bottom') {
+                        if (!newCell.walls.left || !newCell.walls.right) isIntersection = true;
+                    }
+                    
+                    if (isIntersection) {
+                        clearInterval(window.swipeSlideInterval);
+                    }
                 } else {
                     clearInterval(window.swipeSlideInterval);
                     moveInDirection(direction); // trigger wall bump sound
