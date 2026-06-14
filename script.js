@@ -1228,7 +1228,9 @@ function initMobileControls() {
         });
     }
 
-    // Touch handlers for swipe (only allowed around the ball when useGesture is true)
+    // Touch handlers for swipe and tap in maze area
+    let isMazeTouch = false;
+
     canvas.addEventListener('touchstart', (e) => {
         if (!useGesture) return;
 
@@ -1237,39 +1239,36 @@ function initMobileControls() {
         const clientY = touch.clientY;
 
         const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const canvasX = (clientX - rect.left) * scaleX;
+        const canvasY = (clientY - rect.top) * scaleY;
+
         const offsetX = (canvas.width - cols * cellSize) / 2;
         const offsetY = (canvas.height - rows * cellSize) / 2;
-        const playerCenterX = offsetX + player.x * cellSize + cellSize / 2;
-        const playerCenterY = offsetY + player.y * cellSize + cellSize / 2;
-        
-        // Map player coordinates back to screen client coordinates
-        const playerClientX = rect.left + playerCenterX * (rect.width / canvas.width);
-        const playerClientY = rect.top + playerCenterY * (rect.height / canvas.height);
+        const mazeWidth = cols * cellSize;
+        const mazeHeight = rows * cellSize;
 
-        // Check distance in client pixels
-        const dx = clientX - playerClientX;
-        const dy = clientY - playerClientY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        // Touch is near the player (radius of 80 CSS pixels)
-        if (dist <= 80) {
-            isSwipeActive = true;
+        // Check if touch is inside the maze map area
+        if (canvasX >= offsetX && canvasX <= offsetX + mazeWidth &&
+            canvasY >= offsetY && canvasY <= offsetY + mazeHeight) {
+            isMazeTouch = true;
             touchStartX = clientX;
             touchStartY = clientY;
-            e.preventDefault();
+            e.preventDefault(); // Prevent scroll inside maze
         } else {
-            isSwipeActive = false;
+            isMazeTouch = false;
         }
     }, { passive: false });
 
     canvas.addEventListener('touchmove', (e) => {
-        if (useGesture && isSwipeActive) {
-            e.preventDefault();
+        if (useGesture && isMazeTouch) {
+            e.preventDefault(); // Prevent scroll while interacting in maze
         }
     }, { passive: false });
 
     canvas.addEventListener('touchend', (e) => {
-        if (!useGesture || !isSwipeActive) return;
+        if (!useGesture || !isMazeTouch) return;
 
         const touch = e.touches[0] || e.changedTouches[0];
         const touchEndX = touch.clientX;
@@ -1277,15 +1276,36 @@ function initMobileControls() {
         const dx = touchEndX - touchStartX;
         const dy = touchEndY - touchStartY;
         
-        if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+        if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
+            // Swipe
             if (Math.abs(dx) > Math.abs(dy)) {
                 moveInDirection(dx > 0 ? 'right' : 'left');
             } else {
                 moveInDirection(dy > 0 ? 'bottom' : 'top');
             }
-            e.preventDefault();
+        } else {
+            // Tap
+            const rect = canvas.getBoundingClientRect();
+            const offsetX = (canvas.width - cols * cellSize) / 2;
+            const offsetY = (canvas.height - rows * cellSize) / 2;
+            const playerCenterX = offsetX + player.x * cellSize + cellSize / 2;
+            const playerCenterY = offsetY + player.y * cellSize + cellSize / 2;
+            
+            const playerClientX = rect.left + playerCenterX * (rect.width / canvas.width);
+            const playerClientY = rect.top + playerCenterY * (rect.height / canvas.height);
+
+            const tapDx = touchEndX - playerClientX;
+            const tapDy = touchEndY - playerClientY;
+            
+            if (Math.abs(tapDx) > Math.abs(tapDy)) {
+                moveInDirection(tapDx > 0 ? 'right' : 'left');
+            } else {
+                moveInDirection(tapDy > 0 ? 'bottom' : 'top');
+            }
         }
-        isSwipeActive = false;
+        
+        e.preventDefault();
+        isMazeTouch = false;
     }, { passive: false });
 }
 
