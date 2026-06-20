@@ -58,7 +58,12 @@ let isCleared = false;
 let hasStartedMoving = false;
 
 // Game Mode State
-let useGesture = false;
+let gestureMode = 0; // 0: off, 1: active (green), 2: draw (blue)
+let isGestureDrawing = false;
+let gesturePath = [];
+let gestureBlocked = false;
+let isAutoMoving = false;
+let autoMoveInterval = null;
 
 // Trail State
 let trailAnimInterval = null;
@@ -599,6 +604,15 @@ function resetPlayer() {
     }
     trailStartTime = 0;
     lastMoveDir = {dx: 0, dy: 0};
+    
+    isGestureDrawing = false;
+    gesturePath = [];
+    gestureBlocked = false;
+    isAutoMoving = false;
+    if (autoMoveInterval) {
+        clearInterval(autoMoveInterval);
+        autoMoveInterval = null;
+    }
 }
 
 function startTimer() {
@@ -669,7 +683,7 @@ function handleKeyDown(e) {
         }
         return;
     }
-    if (isPaused) return;
+    if (isPaused || isAutoMoving) return;
     
     let direction = '';
     if (e.key === 'ArrowUp' || e.key.toLowerCase() === 'w') direction = 'top';
@@ -739,6 +753,44 @@ function moveInDirection(direction) {
             playYoshiMountSound();
         }
     }
+}
+
+function autoMoveAlongPath() {
+    if (gesturePath.length <= 1) {
+        gesturePath = [];
+        draw();
+        return;
+    }
+    
+    isAutoMoving = true;
+    let stepIndex = 1;
+    
+    autoMoveInterval = setInterval(() => {
+        if (stepIndex >= gesturePath.length || isPaused || isCleared) {
+            clearInterval(autoMoveInterval);
+            autoMoveInterval = null;
+            isAutoMoving = false;
+            gesturePath = [];
+            draw();
+            return;
+        }
+        
+        let nextCell = gesturePath[stepIndex];
+        let dx = nextCell.x - player.x;
+        let dy = nextCell.y - player.y;
+        
+        let dir = '';
+        if (dx === 1) dir = 'right';
+        else if (dx === -1) dir = 'left';
+        else if (dy === 1) dir = 'bottom';
+        else if (dy === -1) dir = 'top';
+        
+        if (dir) {
+            moveInDirection(dir);
+        }
+        
+        stepIndex++;
+    }, 60);
 }
 
 function checkWin() {
@@ -1028,6 +1080,39 @@ function draw() {
         ctx.globalAlpha = 1.0; // 恢復不透明
     }
     
+    // Draw Gesture Drawing Path (Blue State)
+    if (isGestureDrawing && gesturePath.length > 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.6;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = cellSize * 0.3;
+        
+        let p0 = gesturePath[0];
+        ctx.beginPath();
+        ctx.moveTo(p0.x * cellSize + cellSize / 2, p0.y * cellSize + cellSize / 2);
+        
+        for (let i = 1; i < gesturePath.length; i++) {
+            let p1 = gesturePath[i];
+            ctx.lineTo(p1.x * cellSize + cellSize / 2, p1.y * cellSize + cellSize / 2);
+        }
+        
+        // Use a glowing blue color
+        ctx.strokeStyle = '#2196f3';
+        ctx.shadowColor = '#2196f3';
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        
+        // Draw end marker
+        let lastP = gesturePath[gesturePath.length - 1];
+        ctx.beginPath();
+        ctx.arc(lastP.x * cellSize + cellSize / 2, lastP.y * cellSize + cellSize / 2, cellSize * 0.25, 0, Math.PI * 2);
+        ctx.fillStyle = gestureBlocked ? '#f44336' : '#2196f3'; // Red if blocked
+        ctx.fill();
+        
+        ctx.restore();
+    }
+    
     // Draw Trail
     let px = player.x * cellSize + cellSize / 2;
     let py = player.y * cellSize + cellSize / 2;
@@ -1182,7 +1267,7 @@ function initMobileControls() {
         if (!btn) return;
 
         const startMoving = (e) => {
-            if (useGesture) return; // Disable D-pad when gestures are active
+            if (gestureMode !== 0) return; // Disable D-pad when gestures are active
             e.preventDefault();
             moveInDirection(dir);
             if (moveInterval) clearInterval(moveInterval);
@@ -1190,7 +1275,7 @@ function initMobileControls() {
         };
 
         const stopMoving = (e) => {
-            if (useGesture) return;
+            if (gestureMode !== 0) return;
             e.preventDefault();
             if (moveInterval) {
                 clearInterval(moveInterval);
@@ -1212,17 +1297,24 @@ function initMobileControls() {
     const btnUseGesture = document.getElementById('btn-use-gesture');
     if (btnUseGesture) {
         btnUseGesture.addEventListener('click', () => {
-            useGesture = !useGesture;
+            gestureMode = (gestureMode + 1) % 3;
             const mobileControls = document.getElementById('mobile-controls');
-            if (useGesture) {
+            
+            btnUseGesture.classList.remove('active', 'active-blue');
+            
+            if (gestureMode === 0) {
+                if (mobileControls) {
+                    mobileControls.style.removeProperty('display');
+                }
+            } else if (gestureMode === 1) {
                 btnUseGesture.classList.add('active');
                 if (mobileControls) {
                     mobileControls.style.setProperty('display', 'none', 'important');
                 }
-            } else {
-                btnUseGesture.classList.remove('active');
+            } else if (gestureMode === 2) {
+                btnUseGesture.classList.add('active-blue');
                 if (mobileControls) {
-                    mobileControls.style.removeProperty('display');
+                    mobileControls.style.setProperty('display', 'none', 'important');
                 }
             }
         });
@@ -1232,6 +1324,7 @@ function initMobileControls() {
     let isMazeTouch = false;
 
     canvas.addEventListener('touchstart', (e) => {
+        if (isAutoMoving) return;
         const touch = e.touches[0] || e.changedTouches[0];
         const clientX = touch.clientX;
         const clientY = touch.clientY;
@@ -1254,19 +1347,74 @@ function initMobileControls() {
             touchStartX = clientX;
             touchStartY = clientY;
             e.preventDefault(); // Prevent scroll inside maze
+            
+            if (gestureMode === 2) {
+                const playerCenterX = offsetX + player.x * cellSize + cellSize / 2;
+                const playerCenterY = offsetY + player.y * cellSize + cellSize / 2;
+                const dist = Math.hypot(canvasX - playerCenterX, canvasY - playerCenterY);
+                if (dist <= cellSize * 1.5) {
+                    isGestureDrawing = true;
+                    gestureBlocked = false;
+                    gesturePath = [{x: player.x, y: player.y}];
+                    draw();
+                }
+            }
         } else {
             isMazeTouch = false;
         }
     }, { passive: false });
 
     canvas.addEventListener('touchmove', (e) => {
-        if (isMazeTouch) {
-            e.preventDefault(); // Prevent scroll while interacting in maze
+        if (isMazeTouch) e.preventDefault(); // Prevent scroll while interacting in maze
+        if (isAutoMoving) return;
+        
+        if (gestureMode === 2 && isGestureDrawing) {
+            const touch = e.touches[0] || e.changedTouches[0];
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const canvasX = (touch.clientX - rect.left) * scaleX;
+            const canvasY = (touch.clientY - rect.top) * scaleY;
+            
+            const offsetX = (canvas.width - cols * cellSize) / 2;
+            const offsetY = (canvas.height - rows * cellSize) / 2;
+            
+            let gridX = Math.floor((canvasX - offsetX) / cellSize);
+            let gridY = Math.floor((canvasY - offsetY) / cellSize);
+            
+            if (gridX >= 0 && gridX < cols && gridY >= 0 && gridY < rows) {
+                let idx = gesturePath.findIndex(p => p.x === gridX && p.y === gridY);
+                if (idx !== -1) {
+                    gesturePath = gesturePath.slice(0, idx + 1);
+                    gestureBlocked = false;
+                    draw();
+                } else if (!gestureBlocked) {
+                    let currCell = gesturePath[gesturePath.length - 1];
+                    let path = bfsPath(currCell, {x: gridX, y: gridY});
+                    if (path.length > 1 && path.length <= 5) {
+                        for (let i = 1; i < path.length; i++) {
+                            gesturePath.push(path[i]);
+                        }
+                        draw();
+                    } else if (path.length === 0 || path.length > 5) {
+                        gestureBlocked = true;
+                        draw(); // to show blocked red dot
+                    }
+                }
+            }
         }
     }, { passive: false });
 
     canvas.addEventListener('touchend', (e) => {
         if (!isMazeTouch) return;
+        if (isAutoMoving) return;
+        
+        if (gestureMode === 2 && isGestureDrawing) {
+            isGestureDrawing = false;
+            autoMoveAlongPath();
+            isMazeTouch = false;
+            return;
+        }
 
         const touch = e.changedTouches[0];
         const touchEndX = touch.clientX;

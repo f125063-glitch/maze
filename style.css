@@ -154,6 +154,13 @@ body {
     box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
 }
 
+.btn.gesture-btn.active-blue {
+    background: #1565c0;
+    border-color: #2196f3;
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(33, 150, 243, 0.4);
+}
+
 .main-area {
     display: flex;
     flex-direction: row;
