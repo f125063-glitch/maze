@@ -161,6 +161,40 @@ body {
     box-shadow: 0 0 15px rgba(33, 150, 243, 0.4);
 }
 
+/* Touch device and mobile overrides to guarantee "使用手勢" shows next to "變更色彩" */
+@media (pointer: coarse) {
+    .left-panel-content {
+        flex-direction: row;
+        gap: 15px;
+        justify-content: center;
+    }
+    .btn.gesture-btn {
+        display: inline-block;
+    }
+    .left-panel, .right-panel {
+        width: auto;
+    }
+}
+
+body.touch-device .left-panel-content,
+body.mobile-device .left-panel-content {
+    flex-direction: row;
+    gap: 15px;
+    justify-content: center;
+}
+
+body.touch-device .btn.gesture-btn,
+body.mobile-device .btn.gesture-btn {
+    display: inline-block !important;
+}
+
+body.touch-device .left-panel,
+body.touch-device .right-panel,
+body.mobile-device .left-panel,
+body.mobile-device .right-panel {
+    width: auto;
+}
+
 .main-area {
     display: flex;
     flex-direction: row;
@@ -346,7 +380,7 @@ input:checked + .slider:before {
     display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), ((orientation: portrait) and (pointer: coarse)) {
     body {
         height: auto;
         min-height: 100vh;
@@ -448,8 +482,10 @@ input:checked + .slider:before {
     }
 }
 
-/* Landscape Mode Adjustments */
-@media (max-width: 1024px) and (orientation: landscape) {
+/* Landscape Mode Adjustments (supports ultra-wide Sony 21:9 devices & high-res mobile displays) */
+@media ((orientation: landscape) and (max-height: 700px)),
+       ((orientation: landscape) and (max-width: 1600px) and (pointer: coarse)),
+       ((orientation: landscape) and (max-width: 1024px)) {
 
     .main-area {
         flex-direction: row;

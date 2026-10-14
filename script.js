@@ -78,58 +78,139 @@ let hintEndTime = 0;
 
 // Audio System
 const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audioCtx;
+let audioCtx = null;
+let audioUnlocked = false;
+
+// Enable playback mode on iOS 17+ (routes audio to media channel instead of ringer/ambient, bypassing silent switch)
+if ('audioSession' in navigator) {
+    try {
+        navigator.audioSession.type = 'playback';
+    } catch (e) {}
+}
+
+function playSilentAudioHack() {
+    try {
+        const audio = document.createElement('audio');
+        audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+        audio.setAttribute('playsinline', '');
+        audio.setAttribute('webkit-playsinline', '');
+        audio.setAttribute('x-webkit-airplay', 'deny');
+        const p = audio.play();
+        if (p && p.catch) {
+            p.catch(() => {});
+        }
+    } catch (e) {}
+}
 
 function initAudio() {
     if (!audioCtx) {
         audioCtx = new AudioContext();
     }
     if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+        audioCtx.resume().catch(() => {});
+    }
+    return audioCtx;
+}
+
+function unlockAudio() {
+    if ('audioSession' in navigator) {
+        try {
+            navigator.audioSession.type = 'playback';
+        } catch (e) {}
+    }
+
+    playSilentAudioHack();
+    initAudio();
+
+    if (audioCtx) {
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(() => {});
+        }
+        try {
+            const buffer = audioCtx.createBuffer(1, 1, 22050);
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            source.start(0);
+        } catch (e) {}
     }
 }
 
+const unlockEvents = ['touchstart', 'touchend', 'click', 'pointerdown', 'mousedown', 'keydown'];
+function onFirstInteraction() {
+    unlockAudio();
+    if (audioCtx && audioCtx.state === 'running') {
+        audioUnlocked = true;
+        unlockEvents.forEach(evt => {
+            document.removeEventListener(evt, onFirstInteraction, true);
+            window.removeEventListener(evt, onFirstInteraction, true);
+        });
+    }
+}
+unlockEvents.forEach(evt => {
+    document.addEventListener(evt, onFirstInteraction, { capture: true, passive: true });
+    window.addEventListener(evt, onFirstInteraction, { capture: true, passive: true });
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && audioCtx) {
+        if (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted') {
+            audioCtx.resume().catch(() => {});
+        }
+    }
+});
+
 function playCoinSound() {
     initAudio();
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+    }
+    const now = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     
     osc.type = 'square';
     // B5 to E6 shift
-    osc.frequency.setValueAtTime(987.77, audioCtx.currentTime); 
-    osc.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.08);
+    osc.frequency.setValueAtTime(987.77, now); 
+    osc.frequency.setValueAtTime(1318.51, now + 0.08);
     
-    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.02);
-    gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime + 0.15);
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+    gainNode.gain.setValueAtTime(0.0001, now);
+    gainNode.gain.linearRampToValueAtTime(0.08, now + 0.02);
+    gainNode.gain.setValueAtTime(0.08, now + 0.15);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
     
     osc.connect(gainNode);
     gainNode.connect(audioCtx.destination);
     
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.4);
+    osc.start(now);
+    osc.stop(now + 0.4);
 }
 
 function playYoshiMountSound() {
     initAudio();
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+    }
+    const now = audioCtx.currentTime;
     const osc = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     
     osc.type = 'sine';
     
-    osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(200, now);
+    osc.frequency.exponentialRampToValueAtTime(900, now + 0.1);
     
-    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.02);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    gainNode.gain.setValueAtTime(0.0001, now);
+    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
     
     osc.connect(gainNode);
     gainNode.connect(audioCtx.destination);
     
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.25);
+    osc.start(now);
+    osc.stop(now + 0.25);
 }
 
 let starmanInterval = null;
@@ -139,12 +220,19 @@ let tickingInterval = null;
 
 function startTickingSound() {
     initAudio();
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+    }
     if (tickingInterval) return;
-    
-
 
     let tickCount = 0;
     tickingInterval = setInterval(() => {
+        if (!audioCtx) return;
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(() => {});
+        }
+        let now = audioCtx.currentTime;
         let osc = audioCtx.createOscillator();
         let gain = audioCtx.createGain();
         
@@ -154,14 +242,14 @@ function startTickingSound() {
         tickCount++;
         
         // 音量比 BGM (0.3) 大 1.5 倍 = 0.45
-        gain.gain.setValueAtTime(0.45, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.45, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
         
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
     }, 500); // 每 0.5 秒滴答一次
 }
 
@@ -170,7 +258,6 @@ function stopTickingSound() {
         clearInterval(tickingInterval);
         tickingInterval = null;
     }
-
 }
 
 // Removed stopStarmanMusic correctly handled by stopTickingSound rename
@@ -178,6 +265,10 @@ function stopTickingSound() {
 let victoryGain = null;
 function playVictorySound() {
     initAudio();
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+    }
     stopTickingSound(); // Ensure no overlap
     
     // SMW Course Clear melody approx
@@ -206,10 +297,10 @@ function playVictorySound() {
         osc.frequency.value = note.f;
         
         let nodeGain = audioCtx.createGain();
-        nodeGain.gain.setValueAtTime(0, time);
+        nodeGain.gain.setValueAtTime(0.0001, time);
         nodeGain.gain.linearRampToValueAtTime(1, time + 0.02);
         nodeGain.gain.setValueAtTime(1, time + note.d - 0.05);
-        nodeGain.gain.linearRampToValueAtTime(0, time + note.d);
+        nodeGain.gain.linearRampToValueAtTime(0.0001, time + note.d);
         
         osc.connect(nodeGain);
         nodeGain.connect(victoryGain);
@@ -223,7 +314,7 @@ function playVictorySound() {
 
 function stopVictorySound() {
     if (victoryGain && audioCtx) {
-        victoryGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+        victoryGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
         setTimeout(() => {
             if(victoryGain) {
                 victoryGain.disconnect();
@@ -232,6 +323,7 @@ function stopVictorySound() {
         }, 150);
     }
 }
+
 
 // Colors
 let COLOR_WALL = 'rgba(88, 166, 255, 0.8)';
@@ -1512,10 +1604,32 @@ function initMobileControls() {
     }, { passive: false });
 }
 
+// Device & Mobile Detection
+function initDeviceDetection() {
+    const isTouch = ('ontouchstart' in window) || 
+                    (navigator.maxTouchPoints > 0) || 
+                    (navigator.msMaxTouchPoints > 0) || 
+                    (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ||
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isTouch || window.innerWidth <= 1024 || window.innerHeight <= 700) {
+        document.body.classList.add('touch-device', 'mobile-device');
+        const gestureBtn = document.getElementById('btn-use-gesture');
+        if (gestureBtn) {
+            gestureBtn.style.display = 'inline-block';
+        }
+    }
+}
+initDeviceDetection();
+window.addEventListener('DOMContentLoaded', initDeviceDetection);
+window.addEventListener('resize', initDeviceDetection);
+window.addEventListener('orientationchange', initDeviceDetection);
+
 // Service Worker Registration
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then(registration => {
+            registration.update();
             console.log('SW registered:', registration);
         }).catch(error => {
             console.log('SW registration failed:', error);
@@ -1527,3 +1641,4 @@ if ('serviceWorker' in navigator) {
 initList();
 initMobileControls();
 loadLevel(1);
+
