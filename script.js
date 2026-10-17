@@ -1395,15 +1395,18 @@ function initMobileControls() {
             btnUseGesture.classList.remove('active', 'active-blue');
             
             if (gestureMode === 0) {
+                btnUseGesture.innerText = '使用手勢';
                 if (mobileControls) {
                     mobileControls.style.removeProperty('display');
                 }
             } else if (gestureMode === 1) {
+                btnUseGesture.innerText = '手勢: 滑動';
                 btnUseGesture.classList.add('active');
                 if (mobileControls) {
                     mobileControls.style.setProperty('display', 'none', 'important');
                 }
             } else if (gestureMode === 2) {
+                btnUseGesture.innerText = '手勢: 畫線';
                 btnUseGesture.classList.add('active-blue');
                 if (mobileControls) {
                     mobileControls.style.setProperty('display', 'none', 'important');

@@ -2,14 +2,14 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0d1117">
     <title>神祕迷宮 - Maze Adventure</title>
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261015">
+    <link rel="stylesheet" href="style.css?v=20261017">
 </head>
 <body>
 
@@ -95,15 +95,18 @@
             <div class="side-panel right-panel"></div>
         </div>
         
-        <div style="display: grid; grid-template-columns: max-content 80px 30px max-content 220px; align-items: baseline; justify-content: center; margin-top: 15px; font-size: 1.8rem; font-weight: bold; color: var(--text-primary); text-shadow: 0 0 5px rgba(255,255,255,0.3); background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 10px 30px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); white-space: nowrap;">
-            <span class="label" style="color: var(--text-secondary); font-size: 1.2rem; text-align: right; padding-right: 10px;">已使用步數:</span>
-            <span id="steps-display" style="font-family: var(--font-clock); letter-spacing: 2px; color: var(--accent-color); font-variant-numeric: tabular-nums; text-align: left;">000</span>
-            <span></span>
-            <span class="label" style="color: var(--text-secondary); font-size: 1.2rem; text-align: right; padding-right: 10px;">已花費時間:</span>
-            <span id="time-display" style="font-family: var(--font-clock); letter-spacing: 2px; font-variant-numeric: tabular-nums; text-align: left;">00-00-000</span>
+        <div class="stats-bar glass-panel">
+            <div class="stat-item">
+                <span class="label">已使用步數:</span>
+                <span id="steps-display" class="stat-value">000</span>
+            </div>
+            <div class="stat-item">
+                <span class="label">已花費時間:</span>
+                <span id="time-display" class="stat-value">00-00-000</span>
+            </div>
         </div>
     </div>
 
-    <script src="script.js?v=20261015"></script>
+    <script src="script.js?v=20261017"></script>
 </body>
 </html>

@@ -11,7 +11,6 @@
     --danger-color: #f85149;
     
     --font-ui: 'Noto Sans TC', sans-serif;
-    --font-ui: 'Noto Sans TC', sans-serif;
     --font-clock: 'Orbitron', monospace;
     
     --bg-grad-1: #151e2e;
@@ -32,46 +31,57 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    overflow: hidden;
-    /* Soft glowing animated background effect */
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     background: radial-gradient(circle at 50% 50%, var(--bg-grad-1), var(--bg-grad-2));
     transition: background 0.5s ease-in-out;
     padding: 10px;
+    box-sizing: border-box;
 }
-
 
 .game-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
-    width: 90%;
-    max-width: 1000px;
+    gap: 15px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .glass-panel {
     background: var(--panel-bg);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--panel-border);
     border-radius: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    padding: 15px 30px;
+    padding: 12px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .top-bar {
     display: flex;
-    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
 }
 
 .level-info, .target-time {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: bold;
     color: var(--primary-color);
+    display: flex;
+    align-items: center;
 }
 
 .target-time {
@@ -80,20 +90,23 @@ body {
 
 .controls {
     display: flex;
-    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
 }
 
 .btn {
     background: transparent;
     border: 1px solid var(--panel-border);
     color: var(--text-primary);
-    padding: 8px 16px;
+    padding: 8px 14px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-family: var(--font-ui);
     font-weight: bold;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
+    touch-action: manipulation;
 }
 
 .btn:hover {
@@ -122,8 +135,8 @@ body {
     border-color: #ff9a9e;
     color: #333;
     box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
-    font-size: 1.2rem;
-    padding: 15px 20px;
+    font-size: 1.1rem;
+    padding: 10px 18px;
 }
 .btn.magic:hover {
     background: linear-gradient(45deg, #a18cd1 0%, #fbc2eb 100%);
@@ -133,72 +146,45 @@ body {
 
 .left-panel-content {
     display: flex;
-    flex-direction: column;
-    gap: 25px;
+    flex-direction: row;
+    gap: 12px;
     align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
+/* Gesture button - ALWAYS VISIBLE on all devices, phones, and browsers */
 .btn.gesture-btn {
-    display: none; /* Hidden on desktop */
+    display: inline-block !important;
     background: #30363d;
-    border-color: rgba(255, 255, 255, 0.15);
-    color: #8b949e;
-    font-size: 1.2rem;
-    padding: 15px 20px;
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #c9d1d9;
+    font-size: 1.1rem;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    touch-action: manipulation;
 }
 
 .btn.gesture-btn.active {
     background: #2e7d32;
     border-color: #4caf50;
     color: #ffffff;
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
 }
 
 .btn.gesture-btn.active-blue {
     background: #1565c0;
     border-color: #2196f3;
     color: #ffffff;
-    box-shadow: 0 0 15px rgba(33, 150, 243, 0.4);
-}
-
-/* Touch device and mobile overrides to guarantee "使用手勢" shows next to "變更色彩" */
-@media (pointer: coarse) {
-    .left-panel-content {
-        flex-direction: row;
-        gap: 15px;
-        justify-content: center;
-    }
-    .btn.gesture-btn {
-        display: inline-block;
-    }
-    .left-panel, .right-panel {
-        width: auto;
-    }
-}
-
-body.touch-device .left-panel-content,
-body.mobile-device .left-panel-content {
-    flex-direction: row;
-    gap: 15px;
-    justify-content: center;
-}
-
-body.touch-device .btn.gesture-btn,
-body.mobile-device .btn.gesture-btn {
-    display: inline-block !important;
-}
-
-body.touch-device .left-panel,
-body.touch-device .right-panel,
-body.mobile-device .left-panel,
-body.mobile-device .right-panel {
-    width: auto;
+    box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
 }
 
 .main-area {
     display: flex;
-    flex-direction: row;
-    gap: 20px;
+    flex-direction: column;
+    gap: 15px;
     align-items: center;
     width: 100%;
     justify-content: center;
@@ -208,37 +194,38 @@ body.mobile-device .right-panel {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
 }
 
-.left-panel {
-    writing-mode: horizontal-tb; /* Make sure it's horizontal */
-    width: 150px;
-    display: flex;
-    justify-content: center;
-}
-.right-panel {
-    width: 150px; /* Counter-balance the left panel to keep canvas centered */
+.left-panel, .right-panel {
+    width: auto;
 }
 
 .hidden-ui { display: none !important; }
 
+/* Responsive square canvas that fits inside any screen */
 .canvas-wrapper {
     position: relative;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 0 40px rgba(88, 166, 255, 0.2);
-    border: 2px solid rgba(88, 166, 255, 0.3);
-    max-width: 100%;
-    max-height: calc(100vh - 350px);
-    display: inline-flex;
+    box-shadow: 0 0 30px rgba(88, 166, 255, 0.25);
+    border: 2px solid rgba(88, 166, 255, 0.35);
+    width: min(92vw, 480px, calc(100dvh - 350px));
+    height: min(92vw, 480px, calc(100dvh - 350px));
+    min-width: 240px;
+    min-height: 240px;
+    aspect-ratio: 1 / 1;
+    display: flex;
     justify-content: center;
     align-items: center;
     background: var(--canvas-bg);
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 canvas {
-    width: 100%;
-    height: 100%;
+    width: 100% !important;
+    height: 100% !important;
     display: block;
     background: var(--canvas-bg);
     transition: background-color 0.5s ease;
@@ -254,10 +241,11 @@ canvas {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.75);
     color: var(--text-primary);
     z-index: 10;
     text-align: center;
+    padding: 20px;
 }
 
 #clear-overlay {
@@ -270,22 +258,22 @@ canvas {
 }
 
 .glow-text {
-    font-size: 3rem;
+    font-size: 2.5rem;
     color: var(--secondary-color);
     text-shadow: 0 0 20px var(--secondary-color);
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .overlay p {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
+    font-size: 1.25rem;
+    margin-bottom: 8px;
 }
 
 .blink {
     animation: text-blink 1.5s infinite;
     color: var(--text-secondary);
-    font-size: 1.2rem;
-    margin-top: 30px;
+    font-size: 1.1rem;
+    margin-top: 20px;
 }
 
 @keyframes text-blink {
@@ -293,231 +281,103 @@ canvas {
     50% { opacity: 0.3; }
 }
 
-.bottom-bar {
-    justify-content: center;
+/* D-Pad Controls */
+.mobile-only {
+    display: block;
+    user-select: none;
+    -webkit-user-select: none;
+    margin: 5px auto;
 }
 
-.timer-display {
+.d-pad {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 5px;
 }
 
-.timer-display .label {
-    font-size: 0.9rem;
+.d-pad-row {
+    display: flex;
+    gap: 5px;
+}
+
+.ctrl-btn {
+    width: 66px;
+    height: 66px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px solid var(--primary-color);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.1s, background 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.ctrl-btn:active {
+    background: rgba(88, 166, 255, 0.35);
+    transform: scale(0.92);
+}
+
+.ctrl-btn svg {
+    width: 38px;
+    height: 38px;
+    fill: var(--primary-color);
+}
+
+.d-pad-center {
+    width: 66px;
+    height: 66px;
+}
+
+/* Fully responsive Stats Bar */
+.stats-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 15px 30px;
+    padding: 12px 24px;
+    margin-top: 5px;
+    width: 100%;
+    max-width: 650px;
+    box-sizing: border-box;
+}
+
+.stat-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.stat-item .label {
     color: var(--text-secondary);
-    margin-bottom: 4px;
-}
-
-.time-value {
-    font-family: var(--font-clock);
-    font-size: 2.5rem;
+    font-size: 1.1rem;
     font-weight: bold;
-    color: var(--text-primary);
+}
+
+.stat-item .stat-value {
+    font-family: var(--font-clock);
+    font-size: 1.6rem;
     letter-spacing: 2px;
-    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    font-variant-numeric: tabular-nums;
+    font-weight: bold;
 }
 
-/* Toggle Switch Styles */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 26px;
+#steps-display {
+    color: var(--accent-color);
 }
 
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
+#time-display {
+    color: var(--text-primary);
 }
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--panel-border);
-  transition: .4s;
-  border: 1px solid rgba(255,255,255,0.3);
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 4px;
-  bottom: 3px;
-  background-color: white;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: var(--secondary-color);
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 5px var(--secondary-color);
-}
-
-input:checked + .slider:before {
-  transform: translateX(24px);
-}
-
-.slider.round {
-  border-radius: 34px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-
-/* Mobile Controls & RWD */
-.mobile-only {
-    display: none;
-}
-
-@media (max-width: 768px), ((orientation: portrait) and (pointer: coarse)) {
-    body {
-        height: auto;
-        min-height: 100vh;
-        overflow-y: auto;
-    }
-
-    .game-container {
-        width: 100%;
-        gap: 15px;
-    }
-
-    .top-bar {
-        flex-direction: column;
-        padding: 10px;
-        gap: 10px;
-    }
-
-    .controls {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .main-area {
-        flex-direction: column;
-    }
-
-    .side-panel {
-        width: 100%;
-        height: auto;
-    }
-
-    .left-panel, .right-panel {
-        width: auto;
-    }
-
-    .left-panel-content {
-        flex-direction: row;
-        gap: 15px;
-        justify-content: center;
-    }
-
-    .btn.gesture-btn {
-        display: inline-block;
-    }
-
-    .canvas-wrapper {
-        margin: 0 auto;
-    }
-
-    .mobile-only {
-        display: block;
-        margin-top: 20px;
-        user-select: none;
-        align-self: flex-end;
-        margin-right: 20px;
-    }
-
-    .d-pad {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .d-pad-row {
-        display: flex;
-        gap: 5px;
-    }
-
-    .ctrl-btn {
-        width: 70px;
-        height: 70px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 2px solid var(--primary-color);
-        border-radius: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        outline: none;
-        transition: transform 0.1s, background 0.1s;
-        -webkit-tap-highlight-color: transparent;
-    }
-
-    .ctrl-btn:active {
-        background: rgba(88, 166, 255, 0.3);
-        transform: scale(0.9);
-    }
-
-    .ctrl-btn svg {
-        width: 40px;
-        height: 40px;
-        fill: var(--primary-color);
-    }
-
-    .d-pad-center {
-        width: 70px;
-        height: 70px;
-    }
-}
-
-/* Landscape Mode Adjustments (supports ultra-wide Sony 21:9 devices & high-res mobile displays) */
-@media ((orientation: landscape) and (max-height: 700px)),
-       ((orientation: landscape) and (max-width: 1600px) and (pointer: coarse)),
-       ((orientation: landscape) and (max-width: 1024px)) {
-
-    .main-area {
-        flex-direction: row;
-    }
-    .canvas-wrapper {
-        width: 220px !important;
-        height: 220px !important;
-        max-height: none !important;
-        max-width: none !important;
-        flex-shrink: 0 !important;
-    }
-    .mobile-only {
-        display: block !important;
-        align-self: center;
-        margin-top: 0;
-        margin-right: 0;
-    }
-    .left-panel, .right-panel {
-        width: auto;
-    }
-    .left-panel-content {
-        flex-direction: row;
-        gap: 15px;
-        justify-content: center;
-    }
-    .btn.gesture-btn {
-        display: inline-block;
-    }
-}
 /* Glass Select Styles */
 .glass-select {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.08);
     border: 1px solid var(--panel-border);
     color: var(--primary-color);
     padding: 6px 12px;
@@ -537,13 +397,135 @@ input:checked + .slider:before {
 }
 
 .glass-select:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
     border-color: var(--primary-color);
-    box-shadow: 0 0 15px rgba(88, 166, 255, 0.2);
+    box-shadow: 0 0 15px rgba(88, 166, 255, 0.25);
 }
 
 .glass-select option {
     background: var(--bg-color);
     color: var(--text-primary);
     font-weight: normal;
+}
+
+/* Small Screens / Mobile adjustments (Portrait) */
+@media (max-width: 650px) {
+    .top-bar {
+        flex-direction: column;
+        padding: 10px 14px;
+        gap: 8px;
+    }
+    
+    .controls {
+        gap: 6px;
+    }
+    
+    .btn {
+        padding: 6px 10px;
+        font-size: 0.88rem;
+    }
+    
+    .btn.magic, .btn.gesture-btn {
+        padding: 8px 14px;
+        font-size: 0.98rem;
+    }
+    
+    .ctrl-btn {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .ctrl-btn svg {
+        width: 34px;
+        height: 34px;
+    }
+    
+    .d-pad-center {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .stats-bar {
+        gap: 8px 20px;
+        padding: 10px 14px;
+    }
+    
+    .stat-item .label {
+        font-size: 0.95rem;
+    }
+    
+    .stat-item .stat-value {
+        font-size: 1.35rem;
+    }
+}
+
+/* Landscape Mode Adjustments (supports ultra-wide Sony 21:9 & all mobile devices) */
+@media (orientation: landscape) and (max-height: 600px) {
+    body {
+        padding: 6px;
+    }
+    
+    .game-container {
+        gap: 8px;
+    }
+    
+    .top-bar {
+        padding: 6px 14px;
+        gap: 6px;
+    }
+    
+    .btn {
+        padding: 4px 8px;
+        font-size: 0.82rem;
+    }
+    
+    .main-area {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .canvas-wrapper {
+        width: min(72vh, 250px) !important;
+        height: min(72vh, 250px) !important;
+        min-width: 160px;
+        min-height: 160px;
+        flex-shrink: 0;
+    }
+    
+    .mobile-only {
+        display: block !important;
+        align-self: center;
+        margin: 0;
+    }
+    
+    .ctrl-btn {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .ctrl-btn svg {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .d-pad-center {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .stats-bar {
+        padding: 6px 12px;
+        gap: 6px 20px;
+        margin-top: 0;
+    }
+    
+    .stat-item .label {
+        font-size: 0.85rem;
+    }
+    
+    .stat-item .stat-value {
+        font-size: 1.2rem;
+    }
 }
