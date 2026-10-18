@@ -11,7 +11,7 @@
     --danger-color: #f85149;
     
     --font-ui: 'Noto Sans TC', sans-serif;
-    --font-clock: 'Orbitron', monospace;
+    --font-clock: 'Share Tech Mono', 'Courier New', Courier, monospace;
     
     --bg-grad-1: #151e2e;
     --bg-grad-2: #0d1117;
@@ -333,23 +333,34 @@ canvas {
     height: 66px;
 }
 
-/* Fully responsive Stats Bar */
+/* Fully responsive, rock-solid fixed position Stats Bar */
 .stats-bar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 15px 30px;
-    padding: 12px 24px;
+    gap: 12px 28px;
+    padding: 10px 20px;
     margin-top: 5px;
     width: 100%;
-    max-width: 650px;
+    max-width: 600px;
     box-sizing: border-box;
 }
 
 .stat-item {
-    display: flex;
+    display: inline-flex;
     align-items: baseline;
+    justify-content: flex-start;
+    flex-shrink: 0;
+}
+
+.stat-item.stat-steps {
+    min-width: 150px;
+    gap: 8px;
+}
+
+.stat-item.stat-time {
+    min-width: 235px;
     gap: 8px;
 }
 
@@ -357,22 +368,35 @@ canvas {
     color: var(--text-secondary);
     font-size: 1.1rem;
     font-weight: bold;
+    white-space: nowrap;
+    flex-shrink: 0;
+    user-select: none;
 }
 
 .stat-item .stat-value {
     font-family: var(--font-clock);
     font-size: 1.6rem;
-    letter-spacing: 2px;
-    font-variant-numeric: tabular-nums;
+    letter-spacing: 1px;
     font-weight: bold;
+    text-align: left;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 #steps-display {
     color: var(--accent-color);
+    display: inline-block;
+    width: 3.5ch;
+    min-width: 45px;
+    text-align: left;
 }
 
 #time-display {
     color: var(--text-primary);
+    display: inline-block;
+    width: 9.5ch;
+    min-width: 130px;
+    text-align: left;
 }
 
 /* Glass Select Styles */
@@ -425,9 +449,9 @@ canvas {
         font-size: 0.88rem;
     }
     
-    .btn.magic, .btn.gesture-btn {
-        padding: 8px 14px;
-        font-size: 0.98rem;
+    .btn.magic, .btn.gesture-btn, #btn-sound-test {
+        padding: 8px 12px;
+        font-size: 0.95rem;
     }
     
     .ctrl-btn {
@@ -446,8 +470,18 @@ canvas {
     }
     
     .stats-bar {
-        gap: 8px 20px;
-        padding: 10px 14px;
+        gap: 6px 14px;
+        padding: 8px 12px;
+    }
+    
+    .stat-item.stat-steps {
+        min-width: 130px;
+        gap: 6px;
+    }
+    
+    .stat-item.stat-time {
+        min-width: 205px;
+        gap: 6px;
     }
     
     .stat-item .label {
@@ -456,6 +490,16 @@ canvas {
     
     .stat-item .stat-value {
         font-size: 1.35rem;
+    }
+    
+    #steps-display {
+        width: 3.5ch;
+        min-width: 40px;
+    }
+    
+    #time-display {
+        width: 9.5ch;
+        min-width: 115px;
     }
 }
 
@@ -517,8 +561,16 @@ canvas {
     
     .stats-bar {
         padding: 6px 12px;
-        gap: 6px 20px;
+        gap: 6px 16px;
         margin-top: 0;
+    }
+    
+    .stat-item.stat-steps {
+        min-width: 120px;
+    }
+    
+    .stat-item.stat-time {
+        min-width: 190px;
     }
     
     .stat-item .label {
@@ -527,5 +579,13 @@ canvas {
     
     .stat-item .stat-value {
         font-size: 1.2rem;
+    }
+    
+    #steps-display {
+        min-width: 36px;
+    }
+    
+    #time-display {
+        min-width: 105px;
     }
 }

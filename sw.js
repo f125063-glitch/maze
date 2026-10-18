@@ -1,11 +1,13 @@
-const CACHE_NAME = 'maze-game-v20261017';
+const CACHE_NAME = 'maze-game-v20261018';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
-  './style.css?v=20261017',
+  './style.css?v=20261018',
   './script.js',
-  './script.js?v=20261017',
+  './script.js?v=20261018',
+  './unmute.js',
+  './unmute.js?v=20261018',
   './manifest.json',
   './icon.svg'
 ];

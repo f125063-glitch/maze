@@ -76,10 +76,10 @@ let hintActive = false;
 let hintPath = null;
 let hintEndTime = 0;
 
-// Audio System
+// Audio System with iOS Unmute and Dual-Engine Fallback
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
-let audioUnlocked = false;
+let unmuteController = null;
 
 // Enable playback mode on iOS 17+ (routes audio to media channel instead of ringer/ambient, bypassing silent switch)
 if ('audioSession' in navigator) {
@@ -88,64 +88,78 @@ if ('audioSession' in navigator) {
     } catch (e) {}
 }
 
-function playSilentAudioHack() {
-    try {
-        const audio = document.createElement('audio');
-        audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-        audio.setAttribute('playsinline', '');
-        audio.setAttribute('webkit-playsinline', '');
-        audio.setAttribute('x-webkit-airplay', 'deny');
-        const p = audio.play();
-        if (p && p.catch) {
-            p.catch(() => {});
-        }
-    } catch (e) {}
-}
-
 function initAudio() {
     if (!audioCtx) {
-        audioCtx = new AudioContext();
+        try {
+            audioCtx = new AudioContext();
+            if (typeof unmute === 'function') {
+                unmuteController = unmute(audioCtx, false, false);
+            }
+        } catch (e) {
+            console.warn('AudioContext creation failed:', e);
+        }
     }
-    if (audioCtx.state === 'suspended') {
+    if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume().catch(() => {});
     }
     return audioCtx;
 }
 
-function unlockAudio() {
-    if ('audioSession' in navigator) {
-        try {
-            navigator.audioSession.type = 'playback';
-        } catch (e) {}
-    }
-
-    playSilentAudioHack();
-    initAudio();
-
-    if (audioCtx) {
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume().catch(() => {});
+// Generate an in-memory WAV audio Blob as an instant HTML5 Audio fallback for iOS
+let html5CoinAudio = null;
+function initHtml5CoinAudio() {
+    if (html5CoinAudio) return;
+    try {
+        const sampleRate = 22050;
+        const duration = 0.35;
+        const numSamples = Math.floor(sampleRate * duration);
+        const dataSize = numSamples * 2;
+        const buffer = new ArrayBuffer(44 + dataSize);
+        const view = new DataView(buffer);
+        
+        view.setUint32(0, 0x52494646, false); // 'RIFF'
+        view.setUint32(4, 36 + dataSize, true);
+        view.setUint32(8, 0x57415645, false); // 'WAVE'
+        view.setUint32(12, 0x666d7420, false); // 'fmt '
+        view.setUint16(16, 16, true);
+        view.setUint16(20, 1, true); // PCM
+        view.setUint16(22, 1, true); // Mono
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * 2, true);
+        view.setUint16(32, 2, true);
+        view.setUint16(34, 16, true);
+        view.setUint32(36, 0x64617461, false); // 'data'
+        view.setUint32(40, dataSize, true);
+        
+        for (let i = 0; i < numSamples; i++) {
+            const t = i / sampleRate;
+            const freq = t < 0.08 ? 987.77 : 1318.51;
+            let gain = t < 0.02 ? (t / 0.02) : (t < 0.15 ? 1.0 : Math.max(0, 1 - (t - 0.15) / 0.20));
+            const val = Math.sin(2 * Math.PI * freq * t) >= 0 ? 0.35 : -0.35;
+            const sample = Math.max(-32768, Math.min(32767, Math.floor(val * gain * 32767)));
+            view.setInt16(44 + i * 2, sample, true);
         }
-        try {
-            const buffer = audioCtx.createBuffer(1, 1, 22050);
-            const source = audioCtx.createBufferSource();
-            source.buffer = buffer;
-            source.connect(audioCtx.destination);
-            source.start(0);
-        } catch (e) {}
+        
+        const blob = new Blob([buffer], { type: 'audio/wav' });
+        html5CoinAudio = new Audio(URL.createObjectURL(blob));
+        html5CoinAudio.volume = 1.0;
+    } catch (e) {
+        console.warn('HTML5 coin audio generation failed:', e);
     }
 }
+initHtml5CoinAudio();
 
-const unlockEvents = ['touchstart', 'touchend', 'click', 'pointerdown', 'mousedown', 'keydown'];
+// Unlock on first interaction
+const unlockEvents = ['click', 'touchend', 'pointerup', 'keydown'];
 function onFirstInteraction() {
-    unlockAudio();
-    if (audioCtx && audioCtx.state === 'running') {
-        audioUnlocked = true;
-        unlockEvents.forEach(evt => {
-            document.removeEventListener(evt, onFirstInteraction, true);
-            window.removeEventListener(evt, onFirstInteraction, true);
-        });
+    initAudio();
+    if (html5CoinAudio) {
+        html5CoinAudio.load();
     }
+    unlockEvents.forEach(evt => {
+        document.removeEventListener(evt, onFirstInteraction, true);
+        window.removeEventListener(evt, onFirstInteraction, true);
+    });
 }
 unlockEvents.forEach(evt => {
     document.addEventListener(evt, onFirstInteraction, { capture: true, passive: true });
@@ -162,29 +176,40 @@ document.addEventListener('visibilitychange', () => {
 
 function playCoinSound() {
     initAudio();
-    if (!audioCtx) return;
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume().catch(() => {});
+    
+    // Web Audio playback with amplified gain (0.35 instead of 0.08)
+    if (audioCtx && audioCtx.state === 'running') {
+        try {
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(987.77, now); 
+            osc.frequency.setValueAtTime(1318.51, now + 0.08);
+            
+            gainNode.gain.setValueAtTime(0.0001, now);
+            gainNode.gain.linearRampToValueAtTime(0.35, now + 0.02);
+            gainNode.gain.setValueAtTime(0.35, now + 0.15);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(now);
+            osc.stop(now + 0.4);
+            return;
+        } catch (e) {}
     }
-    const now = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
     
-    osc.type = 'square';
-    // B5 to E6 shift
-    osc.frequency.setValueAtTime(987.77, now); 
-    osc.frequency.setValueAtTime(1318.51, now + 0.08);
-    
-    gainNode.gain.setValueAtTime(0.0001, now);
-    gainNode.gain.linearRampToValueAtTime(0.08, now + 0.02);
-    gainNode.gain.setValueAtTime(0.08, now + 0.15);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
-    
-    osc.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    
-    osc.start(now);
-    osc.stop(now + 0.4);
+    // Fallback: HTML5 Audio playback (bypasses iOS mute switch on all versions)
+    if (html5CoinAudio) {
+        try {
+            html5CoinAudio.currentTime = 0;
+            const p = html5CoinAudio.play();
+            if (p && p.catch) p.catch(() => {});
+        } catch (e) {}
+    }
 }
 
 function playYoshiMountSound() {
@@ -198,12 +223,11 @@ function playYoshiMountSound() {
     const gainNode = audioCtx.createGain();
     
     osc.type = 'sine';
-    
     osc.frequency.setValueAtTime(200, now);
     osc.frequency.exponentialRampToValueAtTime(900, now + 0.1);
     
     gainNode.gain.setValueAtTime(0.0001, now);
-    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+    gainNode.gain.linearRampToValueAtTime(0.4, now + 0.02);
     gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
     
     osc.connect(gainNode);
@@ -288,7 +312,7 @@ function playVictorySound() {
     let time = audioCtx.currentTime;
     
     victoryGain = audioCtx.createGain();
-    victoryGain.gain.value = 0.2;
+    victoryGain.gain.value = 0.4;
     victoryGain.connect(audioCtx.destination);
     
     fanfareNotes.forEach(note => {
@@ -1412,6 +1436,15 @@ function initMobileControls() {
                     mobileControls.style.setProperty('display', 'none', 'important');
                 }
             }
+        });
+    }
+
+    // Sound test button event listener
+    const btnTestSound = document.getElementById('btn-sound-test');
+    if (btnTestSound) {
+        btnTestSound.addEventListener('click', () => {
+            initAudio();
+            playCoinSound();
         });
     }
 

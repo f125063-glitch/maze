@@ -8,8 +8,8 @@
     <meta name="theme-color" content="#0d1117">
     <title>神祕迷宮 - Maze Adventure</title>
     <link rel="manifest" href="manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261017">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=20261018">
 </head>
 <body>
 
@@ -45,6 +45,7 @@
                 <div class="left-panel-content">
                     <button id="btn-change-color" class="btn magic">變更色彩</button>
                     <button id="btn-use-gesture" class="btn gesture-btn">使用手勢</button>
+                    <button id="btn-sound-test" class="btn warning" style="padding: 10px 14px; font-size: 1rem;">🔊 音效測試</button>
                 </div>
             </div>
             
@@ -96,17 +97,18 @@
         </div>
         
         <div class="stats-bar glass-panel">
-            <div class="stat-item">
+            <div class="stat-item stat-steps">
                 <span class="label">已使用步數:</span>
                 <span id="steps-display" class="stat-value">000</span>
             </div>
-            <div class="stat-item">
+            <div class="stat-item stat-time">
                 <span class="label">已花費時間:</span>
                 <span id="time-display" class="stat-value">00-00-000</span>
             </div>
         </div>
     </div>
 
-    <script src="script.js?v=20261017"></script>
+    <script src="unmute.js?v=20261018"></script>
+    <script src="script.js?v=20261018"></script>
 </body>
 </html>
